@@ -16,20 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package me.StevenLawson.BukkitTelnetClient;
+package me.mayo.telnetkek;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class BukkitTelnetClient
+public class TelnetKek
 {
 
     public static final String VERSION_STRING = "v1.0";
-    public static final Logger LOGGER = Logger.getLogger(BukkitTelnetClient.class.getName());
-    public static BTC_MainPanel mainPanel = null;
-    public static BTC_ConfigLoader config = new BTC_ConfigLoader();
+    public static final Logger LOGGER = Logger.getLogger(TelnetKek.class.getName());
+    public static MainPanel mainPanel = null;
+    public static ConfigLoader config = new ConfigLoader();
 
     public static void main(String args[])
     {
@@ -42,7 +42,7 @@ public class BukkitTelnetClient
             @Override
             public void run()
             {
-                mainPanel = new BTC_MainPanel();
+                mainPanel = new MainPanel();
                 mainPanel.setup();
             }
         });

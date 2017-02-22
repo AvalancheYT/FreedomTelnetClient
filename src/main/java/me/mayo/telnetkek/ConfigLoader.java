@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package me.StevenLawson.BukkitTelnetClient;
+package me.mayo.telnetkek;
 
 import java.io.*;
 import java.util.*;
@@ -30,7 +30,7 @@ import org.apache.commons.io.FileUtils;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
-public class BTC_ConfigLoader
+public class ConfigLoader
 {
 
     private static final String SETTINGS_FILE = "ftc_settings.xml";
@@ -39,7 +39,7 @@ public class BTC_ConfigLoader
     private final PlayerCommandEntry.PlayerCommandEntryList playerCommands = new PlayerCommandEntry.PlayerCommandEntryList();
     private final FavoriteButtonEntry.FavoriteButtonEntryList favoriteButtons = new FavoriteButtonEntry.FavoriteButtonEntryList();
 
-    public BTC_ConfigLoader()
+    public ConfigLoader()
     {
     }
 
@@ -129,7 +129,7 @@ public class BTC_ConfigLoader
         }
         catch (IllegalArgumentException | ParserConfigurationException | TransformerException | DOMException ex)
         {
-            BukkitTelnetClient.LOGGER.log(Level.SEVERE, null, ex);
+            TelnetKek.LOGGER.log(Level.SEVERE, null, ex);
         }
 
         return false;
@@ -166,7 +166,7 @@ public class BTC_ConfigLoader
         {
             hadErrors = true;
 
-            BukkitTelnetClient.LOGGER.log(Level.SEVERE, null, ex);
+            TelnetKek.LOGGER.log(Level.SEVERE, null, ex);
         }
 
         return hadErrors;
@@ -174,7 +174,7 @@ public class BTC_ConfigLoader
 
     private static boolean extractFileFromJar(final String resourceName, final String fileName)
     {
-        final InputStream resource = BTC_ConfigLoader.class.getResourceAsStream(resourceName);
+        final InputStream resource = ConfigLoader.class.getResourceAsStream(resourceName);
         if (resource != null)
         {
             final File destination = new File(fileName);
@@ -185,7 +185,7 @@ public class BTC_ConfigLoader
             }
             catch (IOException ex)
             {
-                BukkitTelnetClient.LOGGER.log(Level.SEVERE, null, ex);
+                TelnetKek.LOGGER.log(Level.SEVERE, null, ex);
             }
         }
 

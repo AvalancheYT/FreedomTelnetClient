@@ -16,14 +16,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package me.StevenLawson.BukkitTelnetClient;
+package me.mayo.telnetkek;
 
-import java.lang.annotation.*;
+import java.awt.Color;
 
-@Retention(value = RetentionPolicy.RUNTIME)
-@Target(value = ElementType.METHOD)
-public @interface ParameterSetter
+public class ConsoleMessage
 {
 
-    public String name();
+    private final String message;
+    private Color color;
+
+    public ConsoleMessage(final String message)
+    {
+        this.message = message;
+        this.color = Color.BLACK;
+    }
+
+    public ConsoleMessage(final String message, final Color color)
+    {
+        this.message = message;
+        this.color = color;
+    }
+
+    public String getMessage()
+    {
+        return message;
+    }
+
+    public Color getColor()
+    {
+        return color;
+    }
+
+    public void setColor(Color color)
+    {
+        this.color = color;
+    }
 }

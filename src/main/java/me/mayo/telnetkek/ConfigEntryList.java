@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package me.StevenLawson.BukkitTelnetClient;
+package me.mayo.telnetkek;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -68,14 +68,14 @@ public abstract class ConfigEntryList<E extends ConfigEntry>
                 }
                 catch (InstantiationException | IllegalAccessException ex)
                 {
-                    BukkitTelnetClient.LOGGER.log(Level.SEVERE, null, ex);
+                    TelnetKek.LOGGER.log(Level.SEVERE, null, ex);
                     return false;
                 }
 
                 final Element itemElement = (Element) itemNode;
                 for (final Method method : getEntryClass().getDeclaredMethods())
                 {
-                    final ParameterSetter annotation = BukkitTelnetClient.getDeclaredAnnotation(method, ParameterSetter.class);
+                    final ParameterSetter annotation = TelnetKek.getDeclaredAnnotation(method, ParameterSetter.class);
                     if (annotation == null)
                     {
                         continue;
@@ -100,7 +100,7 @@ public abstract class ConfigEntryList<E extends ConfigEntry>
                         }
                         catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex)
                         {
-                            BukkitTelnetClient.LOGGER.log(Level.SEVERE, null, ex);
+                            TelnetKek.LOGGER.log(Level.SEVERE, null, ex);
                         }
                     }
                 }
@@ -123,7 +123,7 @@ public abstract class ConfigEntryList<E extends ConfigEntry>
 
             for (final Method method : getEntryClass().getDeclaredMethods())
             {
-                final ParameterGetter annotation = BukkitTelnetClient.getDeclaredAnnotation(method, ParameterGetter.class);
+                final ParameterGetter annotation = TelnetKek.getDeclaredAnnotation(method, ParameterGetter.class);
                 if (annotation == null)
                 {
                     continue;
@@ -138,7 +138,7 @@ public abstract class ConfigEntryList<E extends ConfigEntry>
                 }
                 catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex)
                 {
-                    BukkitTelnetClient.LOGGER.log(Level.SEVERE, null, ex);
+                    TelnetKek.LOGGER.log(Level.SEVERE, null, ex);
                 }
                 if (value != null)
                 {

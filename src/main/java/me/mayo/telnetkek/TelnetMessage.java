@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package me.StevenLawson.BukkitTelnetClient;
+package me.mayo.telnetkek;
 
 import java.awt.Color;
 import java.util.regex.Pattern;
 
-public class BTC_TelnetMessage extends BTC_ConsoleMessage
+public class TelnetMessage extends ConsoleMessage
 {
 
     private static final String PATTERN_PREFIX = "^:\\[.+? INFO\\]: ";
@@ -33,7 +33,7 @@ public class BTC_TelnetMessage extends BTC_ConsoleMessage
 
     private final BTC_LogMessageType messageType;
 
-    public BTC_TelnetMessage(String message)
+    public TelnetMessage(String message)
     {
         super(message);
         this.messageType = BTC_LogMessageType.getMessageType(message);
@@ -61,7 +61,7 @@ public class BTC_TelnetMessage extends BTC_ConsoleMessage
 
     public boolean skip()
     {
-        final BTC_MainPanel mainPanel = BukkitTelnetClient.mainPanel;
+        final MainPanel mainPanel = TelnetKek.mainPanel;
 
         if (mainPanel == null)
         {

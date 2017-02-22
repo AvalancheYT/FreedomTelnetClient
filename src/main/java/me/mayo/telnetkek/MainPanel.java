@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package me.StevenLawson.BukkitTelnetClient;
+package me.mayo.telnetkek;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -32,15 +32,15 @@ import javax.swing.text.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
-public class BTC_MainPanel extends javax.swing.JFrame
+public class MainPanel extends javax.swing.JFrame
 {
 
-    private final BTC_ConnectionManager connectionManager = new BTC_ConnectionManager();
+    private final ConnectionManager connectionManager = new ConnectionManager();
     private final List<PlayerInfo> playerList = new ArrayList<>();
     private final PlayerListTableModel playerListTableModel = new PlayerListTableModel(playerList);
-    private final Collection<FavoriteButtonEntry> favButtonList = BukkitTelnetClient.config.getFavoriteButtons();
+    private final Collection<FavoriteButtonEntry> favButtonList = TelnetKek.config.getFavoriteButtons();
 
-    public BTC_MainPanel()
+    public MainPanel()
     {
         initComponents();
     }
@@ -54,7 +54,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
             {
                 if (e.getKeyChar() == KeyEvent.VK_ENTER)
                 {
-                    BTC_MainPanel.this.triggerConnect();
+                    MainPanel.this.triggerConnect();
                 }
             }
         });
@@ -79,12 +79,12 @@ public class BTC_MainPanel extends javax.swing.JFrame
         this.setVisible(true);
     }
 
-    private final Queue<BTC_TelnetMessage> telnetErrorQueue = new LinkedList<>();
+    private final Queue<TelnetMessage> telnetErrorQueue = new LinkedList<>();
     private boolean isQueueing = false;
 
     private void flushTelnetErrorQueue()
     {
-        BTC_TelnetMessage queuedMessage;
+        TelnetMessage queuedMessage;
         while ((queuedMessage = telnetErrorQueue.poll()) != null)
         {
             queuedMessage.setColor(Color.GRAY);
@@ -92,16 +92,16 @@ public class BTC_MainPanel extends javax.swing.JFrame
         }
     }
 
-    public void writeToConsole(final BTC_ConsoleMessage message)
+    public void writeToConsole(final ConsoleMessage message)
     {
         if (message.getMessage().isEmpty())
         {
             return;
         }
 
-        if (message instanceof BTC_TelnetMessage)
+        if (message instanceof TelnetMessage)
         {
-            final BTC_TelnetMessage telnetMessage = (BTC_TelnetMessage) message;
+            final TelnetMessage telnetMessage = (TelnetMessage) message;
 
             if (telnetMessage.isInfoMessage())
             {
@@ -127,7 +127,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
         }
     }
 
-    private void writeToConsoleImmediately(final BTC_ConsoleMessage message, final boolean isTelnetError)
+    private void writeToConsoleImmediately(final ConsoleMessage message, final boolean isTelnetError)
     {
         SwingUtilities.invokeLater(new Runnable()
         {
@@ -156,7 +156,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
                     throw new RuntimeException(ex);
                 }
 
-                if (BTC_MainPanel.this.chkAutoScroll.isSelected() && BTC_MainPanel.this.mainOutput.getSelectedText() == null)
+                if (MainPanel.this.chkAutoScroll.isSelected() && MainPanel.this.mainOutput.getSelectedText() == null)
                 {
                     final JScrollBar vScroll = mainOutputScoll.getVerticalScrollBar();
 
@@ -164,7 +164,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
                     {
                         if (vScroll.getValue() + vScroll.getModel().getExtent() >= (vScroll.getMaximum() - 50))
                         {
-                            BTC_MainPanel.this.mainOutput.setCaretPosition(startLength);
+                            MainPanel.this.mainOutput.setCaretPosition(startLength);
 
                             final Timer timer = new Timer(10, new ActionListener()
                             {
@@ -185,7 +185,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
 
     public final PlayerInfo getSelectedPlayer()
     {
-        final JTable table = BTC_MainPanel.this.tblPlayers;
+        final JTable table = MainPanel.this.tblPlayers;
 
         final int selectedRow = table.getSelectedRow();
         if (selectedRow < 0 || selectedRow >= playerList.size())
@@ -250,11 +250,11 @@ public class BTC_MainPanel extends javax.swing.JFrame
             {
                 playerListTableModel.fireTableDataChanged();
 
-                BTC_MainPanel.this.txtNumPlayers.setText("" + playerList.size());
+                MainPanel.this.txtNumPlayers.setText("" + playerList.size());
 
                 if (selectedPlayerName != null)
                 {
-                    final JTable table = BTC_MainPanel.this.tblPlayers;
+                    final JTable table = MainPanel.this.tblPlayers;
                     final ListSelectionModel selectionModel = table.getSelectionModel();
 
                     for (PlayerInfo player : playerList)
@@ -310,7 +310,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
             @Override
             public void mouseReleased(final MouseEvent mouseEvent)
             {
-                final JTable table = BTC_MainPanel.this.tblPlayers;
+                final JTable table = MainPanel.this.tblPlayers;
 
                 final int r = table.rowAtPoint(mouseEvent.getPoint());
                 if (r >= 0 && r < table.getRowCount())
@@ -351,7 +351,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
                                 {
                                     final PlayerListPopupItem_Command source = (PlayerListPopupItem_Command) _source;
                                     final String output = source.getCommand().buildOutput(source.getPlayer(), true);
-                                    BTC_MainPanel.this.getConnectionManager().sendDelayedCommand(output, true, 100);
+                                    MainPanel.this.getConnectionManager().sendDelayedCommand(output, true, 100);
                                 }
                                 else if (_source instanceof PlayerListPopupItem)
                                 {
@@ -364,19 +364,19 @@ public class BTC_MainPanel extends javax.swing.JFrame
                                         case "Copy IP":
                                         {
                                             copyToClipboard(_player.getIp());
-                                            BTC_MainPanel.this.writeToConsole(new BTC_ConsoleMessage("Copied IP to clipboard: " + _player.getIp()));
+                                            MainPanel.this.writeToConsole(new ConsoleMessage("Copied IP to clipboard: " + _player.getIp()));
                                             break;
                                         }
                                         case "Copy Name":
                                         {
                                             copyToClipboard(_player.getName());
-                                            BTC_MainPanel.this.writeToConsole(new BTC_ConsoleMessage("Copied name to clipboard: " + _player.getName()));
+                                            MainPanel.this.writeToConsole(new ConsoleMessage("Copied name to clipboard: " + _player.getName()));
                                             break;
                                         }
                                         case "Copy UUID":
                                         {
                                             copyToClipboard(_player.getUuid());
-                                            BTC_MainPanel.this.writeToConsole(new BTC_ConsoleMessage("Copied UUID to clipboard: " + _player.getUuid()));
+                                            MainPanel.this.writeToConsole(new ConsoleMessage("Copied UUID to clipboard: " + _player.getUuid()));
                                             break;
                                         }
                                     }
@@ -384,7 +384,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
                             }
                         };
 
-                        for (final PlayerCommandEntry command : BukkitTelnetClient.config.getCommands())
+                        for (final PlayerCommandEntry command : TelnetKek.config.getCommands())
                         {
                             final PlayerListPopupItem_Command item = new PlayerListPopupItem_Command(command.getName(), player, command);
                             item.addActionListener(popupAction);
@@ -422,7 +422,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
     public final void loadServerList()
     {
         txtServer.removeAllItems();
-        for (final ServerEntry serverEntry : BukkitTelnetClient.config.getServers())
+        for (final ServerEntry serverEntry : TelnetKek.config.getServers())
         {
             txtServer.addItem(serverEntry);
             if (serverEntry.isLastUsed())
@@ -474,10 +474,10 @@ public class BTC_MainPanel extends javax.swing.JFrame
 
             entry = new ServerEntry(serverName, serverAddress);
 
-            BukkitTelnetClient.config.getServers().add(entry);
+            TelnetKek.config.getServers().add(entry);
         }
 
-        BukkitTelnetClient.config.save();
+        TelnetKek.config.save();
         return entry;
     }
 
@@ -512,7 +512,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
         jPanel4 = new javax.swing.JPanel();
         favoriteButtonsPanelHolder = new javax.swing.JPanel();
         favoriteButtonsPanelScroll = new javax.swing.JScrollPane();
-        favoriteButtonsPanel = new BTC_FavoriteButtonsPanel(favButtonList);
+        favoriteButtonsPanel = new FavoriteButtonsPanel(favButtonList);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("BukkitTelnetClient");
@@ -905,7 +905,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
     private javax.swing.JScrollPane tblPlayersScroll;
     private javax.swing.JTextField txtCommand;
     private javax.swing.JTextField txtNumPlayers;
-    private javax.swing.JComboBox<me.StevenLawson.BukkitTelnetClient.ServerEntry> txtServer;
+    private javax.swing.JComboBox<me.mayo.telnetkek.ServerEntry> txtServer;
     // End of variables declaration//GEN-END:variables
 
     public javax.swing.JButton getBtnConnect()
@@ -968,7 +968,7 @@ public class BTC_MainPanel extends javax.swing.JFrame
         return playerList;
     }
 
-    public BTC_ConnectionManager getConnectionManager()
+    public ConnectionManager getConnectionManager()
     {
         return connectionManager;
     }

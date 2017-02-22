@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package me.StevenLawson.BukkitTelnetClient;
+package me.mayo.telnetkek;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -31,7 +31,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.net.telnet.TelnetClient;
 
-public class BTC_ConnectionManager
+public class ConnectionManager
 {
 
     private static final Pattern LOGIN_MESSAGE = Pattern.compile("\\[.+?@BukkitTelnet\\]\\$ Logged in as (.+)\\.");
@@ -43,19 +43,19 @@ public class BTC_ConnectionManager
     private boolean canDoDisconnect = false;
     private String loginName;
 
-    public BTC_ConnectionManager()
+    public ConnectionManager()
     {
     }
 
     public void triggerConnect(final String hostname, final int port)
     {
-        final BTC_MainPanel btc = BukkitTelnetClient.mainPanel;
+        final MainPanel btc = TelnetKek.mainPanel;
 
         btc.getBtnConnect().setEnabled(false);
         btc.getTxtServer().setEnabled(false);
         btc.getBtnDisconnect().setEnabled(true);
 
-        btc.writeToConsole(new BTC_ConsoleMessage("Connecting to " + hostname + ":" + port + "", Color.RED));
+        btc.writeToConsole(new ConsoleMessage("Connecting to " + hostname + ":" + port + "", Color.RED));
 
         this.hostname = hostname;
         this.port = port;
@@ -101,14 +101,14 @@ public class BTC_ConnectionManager
             }
             catch (IOException ex)
             {
-                BukkitTelnetClient.LOGGER.log(Level.SEVERE, null, ex);
+                TelnetKek.LOGGER.log(Level.SEVERE, null, ex);
             }
         }
     }
 
     public void finishDisconnect()
     {
-        final BTC_MainPanel btc = BukkitTelnetClient.mainPanel;
+        final MainPanel btc = TelnetKek.mainPanel;
 
         btc.getBtnConnect().setEnabled(true);
         btc.getTxtServer().setEnabled(true);
@@ -120,7 +120,7 @@ public class BTC_ConnectionManager
 
         updateTitle(false);
 
-        btc.writeToConsole(new BTC_ConsoleMessage("Disconnected.", Color.RED));
+        btc.writeToConsole(new ConsoleMessage("Disconnected.", Color.RED));
     }
 
     public void sendCommand(final String text)
@@ -134,7 +134,7 @@ public class BTC_ConnectionManager
         {
             if (verbose)
             {
-                BukkitTelnetClient.mainPanel.writeToConsole(new BTC_ConsoleMessage(":" + text));
+                TelnetKek.mainPanel.writeToConsole(new ConsoleMessage(":" + text));
             }
 
             final OutputStream out = this.telnetClient.getOutputStream();
@@ -148,7 +148,7 @@ public class BTC_ConnectionManager
         }
         catch (IOException ex)
         {
-            BukkitTelnetClient.LOGGER.log(Level.SEVERE, null, ex);
+            TelnetKek.LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -179,12 +179,12 @@ public class BTC_ConnectionManager
             @Override
             public void run()
             {
-                final BTC_MainPanel btc = BukkitTelnetClient.mainPanel;
+                final MainPanel btc = TelnetKek.mainPanel;
 
                 try
                 {
-                    BTC_ConnectionManager.this.telnetClient.connect(hostname, port);
-                    BTC_ConnectionManager.this.canDoDisconnect = true;
+                    ConnectionManager.this.telnetClient.connect(hostname, port);
+                    ConnectionManager.this.canDoDisconnect = true;
 
                     btc.getBtnSend().setEnabled(true);
                     btc.getTxtCommand().setEnabled(true);
@@ -196,13 +196,13 @@ public class BTC_ConnectionManager
                         while ((line = reader.readLine()) != null)
                         {
                             String _loginName = null;
-                            if (BTC_ConnectionManager.this.loginName == null)
+                            if (ConnectionManager.this.loginName == null)
                             {
                                 _loginName = checkForLoginMessage(line);
                             }
                             if (_loginName != null)
                             {
-                                BTC_ConnectionManager.this.loginName = _loginName;
+                                ConnectionManager.this.loginName = _loginName;
                                 updateTitle(true);
                                 sendDelayedCommand("telnet.enhanced", false, 100);
                             }
@@ -215,13 +215,13 @@ public class BTC_ConnectionManager
                                     selectedPlayerName = selectedPlayer.getName();
                                 }
 
-                                if (BTC_PlayerListDecoder.checkForPlayerListMessage(line, btc.getPlayerList()))
+                                if (PlayerListDecoder.checkForPlayerListMessage(line, btc.getPlayerList()))
                                 {
                                     btc.updatePlayerList(selectedPlayerName);
                                 }
                                 else
                                 {
-                                    final BTC_TelnetMessage message = new BTC_TelnetMessage(line);
+                                    final TelnetMessage message = new TelnetMessage(line);
                                     if (!message.skip())
                                     {
                                         btc.writeToConsole(message);
@@ -235,12 +235,12 @@ public class BTC_ConnectionManager
                 }
                 catch (IOException ex)
                 {
-                    btc.writeToConsole(new BTC_ConsoleMessage(ex.getMessage() + SystemUtils.LINE_SEPARATOR + ExceptionUtils.getStackTrace(ex)));
+                    btc.writeToConsole(new ConsoleMessage(ex.getMessage() + SystemUtils.LINE_SEPARATOR + ExceptionUtils.getStackTrace(ex)));
                 }
 
                 finishDisconnect();
 
-                BTC_ConnectionManager.this.connectThread = null;
+                ConnectionManager.this.connectThread = null;
             }
         });
         this.connectThread.start();
@@ -259,7 +259,7 @@ public class BTC_ConnectionManager
 
     public final void updateTitle(final boolean isConnected)
     {
-        final BTC_MainPanel mainPanel = BukkitTelnetClient.mainPanel;
+        final MainPanel mainPanel = TelnetKek.mainPanel;
         if (mainPanel == null)
         {
             return;
@@ -271,16 +271,16 @@ public class BTC_ConnectionManager
         {
             if (loginName == null)
             {
-                title = String.format("TelnetKek - %s - %s:%d", BukkitTelnetClient.VERSION_STRING, hostname, port);
+                title = String.format("TelnetKek - %s - %s:%d", TelnetKek.VERSION_STRING, hostname, port);
             }
             else
             {
-                title = String.format("TelnetKek - %s - %s@%s:%d", BukkitTelnetClient.VERSION_STRING, loginName, hostname, port);
+                title = String.format("TelnetKek - %s - %s@%s:%d", TelnetKek.VERSION_STRING, loginName, hostname, port);
             }
         }
         else
         {
-            title = String.format("TelnetKek - %s - Disconnected", BukkitTelnetClient.VERSION_STRING);
+            title = String.format("TelnetKek - %s - Disconnected", TelnetKek.VERSION_STRING);
         }
 
         mainPanel.setTitle(title);

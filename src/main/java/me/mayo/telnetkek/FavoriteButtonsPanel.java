@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package me.StevenLawson.BukkitTelnetClient;
+package me.mayo.telnetkek;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -25,10 +25,10 @@ import java.util.Collection;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
-public class BTC_FavoriteButtonsPanel extends JPanel
+public class FavoriteButtonsPanel extends JPanel
 {
 
-    public BTC_FavoriteButtonsPanel(final Collection<FavoriteButtonEntry> buttonList)
+    public FavoriteButtonsPanel(final Collection<FavoriteButtonEntry> buttonList)
     {
         super.setLayout(new GridBagLayout());
 
@@ -37,9 +37,9 @@ public class BTC_FavoriteButtonsPanel extends JPanel
             @Override
             public void actionPerformed(final ActionEvent event)
             {
-                if (BukkitTelnetClient.mainPanel != null)
+                if (TelnetKek.mainPanel != null)
                 {
-                    BukkitTelnetClient.mainPanel.getConnectionManager().sendDelayedCommand(event.getActionCommand(), true, 100);
+                    TelnetKek.mainPanel.getConnectionManager().sendDelayedCommand(event.getActionCommand(), true, 100);
                 }
             }
         };

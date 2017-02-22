@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package me.StevenLawson.BukkitTelnetClient;
+package me.mayo.telnetkek;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -185,7 +185,7 @@ public class PlayerInfo
                         }
                         catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex)
                         {
-                            BukkitTelnetClient.LOGGER.log(Level.SEVERE, null, ex);
+                            TelnetKek.LOGGER.log(Level.SEVERE, null, ex);
                         }
 
                         return "null";

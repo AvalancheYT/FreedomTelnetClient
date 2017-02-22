@@ -195,7 +195,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtServerActionPerformed"/>
               </Events>
               <AuxValues>
-                <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;me.StevenLawson.BukkitTelnetClient.ServerEntry&gt;"/>
+                <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;me.mayo.telnetkek.ServerEntry&gt;"/>
               </AuxValues>
             </Component>
             <Component class="javax.swing.JCheckBox" name="chkAutoScroll">
@@ -584,7 +584,7 @@
                             </Property>
                           </Properties>
                           <AuxValues>
-                            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new BTC_FavoriteButtonsPanel(favButtonList)"/>
+                            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new me.mayo.telnetkek.FavoriteButtonsPanel(favButtonList)"/>
                           </AuxValues>
 
                           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">

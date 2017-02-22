@@ -16,19 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package me.StevenLawson.BukkitTelnetClient;
+package me.mayo.telnetkek;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.*;
 
-public class BTC_PlayerListDecoder
+public class PlayerListDecoder
 {
 
     private static final Pattern PLAYER_LIST_MESSAGE = Pattern.compile(":\\[.+@BukkitTelnet\\]\\$ playerList~(.+)");
 
-    private BTC_PlayerListDecoder()
+    private PlayerListDecoder()
     {
         throw new AssertionError();
     }
