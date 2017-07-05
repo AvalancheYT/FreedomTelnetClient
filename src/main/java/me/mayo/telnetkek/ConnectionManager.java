@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2012-2014 Steven Lawson
+ * Copyright (C) 2012-2017 Steven Lawson
  *
  * This file is part of FreedomTelnetClient.
  *
@@ -18,10 +18,11 @@
  */
 package me.mayo.telnetkek;
 
+import me.mayo.telnetkek.player.PlayerListDecoder;
+import me.mayo.telnetkek.player.PlayerInfo;
 import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,7 +56,7 @@ public class ConnectionManager
         btc.getTxtServer().setEnabled(false);
         btc.getBtnDisconnect().setEnabled(true);
 
-        btc.writeToConsole(new ConsoleMessage("Connecting to " + hostname + ":" + port + "", Color.RED));
+        btc.writeToConsole(new ConsoleMessage("Connecting to " + hostname + ":" + port + "", Color.GREEN));
 
         this.hostname = hostname;
         this.port = port;
@@ -143,7 +144,7 @@ public class ConnectionManager
                 return;
             }
 
-            this.telnetClient.getOutputStream().write((text + "\r\n").getBytes());
+            this.telnetClient.getOutputStream().write((text + "\r\n").getBytes(StandardCharsets.UTF_8));
             this.telnetClient.getOutputStream().flush();
         }
         catch (IOException ex)
@@ -154,15 +155,7 @@ public class ConnectionManager
 
     public void sendDelayedCommand(final String text, final boolean verbose, final int delay)
     {
-        final Timer timer = new Timer(delay, new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent ae)
-            {
-                sendCommand(text, verbose);
-            }
-        });
-
+        final Timer timer = new Timer(delay, event -> sendCommand(text, verbose));
         timer.setRepeats(false);
         timer.start();
     }
@@ -174,74 +167,71 @@ public class ConnectionManager
             return;
         }
 
-        this.connectThread = new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                final MainPanel btc = TelnetKek.mainPanel;
-
-                try
+        this.connectThread = new Thread(()
+                -> 
                 {
-                    ConnectionManager.this.telnetClient.connect(hostname, port);
-                    ConnectionManager.this.canDoDisconnect = true;
+                    final MainPanel btc = TelnetKek.mainPanel;
 
-                    btc.getBtnSend().setEnabled(true);
-                    btc.getTxtCommand().setEnabled(true);
-                    btc.getTxtCommand().requestFocusInWindow();
-
-                    try (final BufferedReader reader = new BufferedReader(new InputStreamReader(telnetClient.getInputStream())))
+                    try
                     {
-                        String line;
-                        while ((line = reader.readLine()) != null)
-                        {
-                            String _loginName = null;
-                            if (ConnectionManager.this.loginName == null)
-                            {
-                                _loginName = checkForLoginMessage(line);
-                            }
-                            if (_loginName != null)
-                            {
-                                ConnectionManager.this.loginName = _loginName;
-                                updateTitle(true);
-                                sendDelayedCommand("telnet.enhanced", false, 100);
-                            }
-                            else
-                            {
-                                final PlayerInfo selectedPlayer = btc.getSelectedPlayer();
-                                String selectedPlayerName = null;
-                                if (selectedPlayer != null)
-                                {
-                                    selectedPlayerName = selectedPlayer.getName();
-                                }
+                        ConnectionManager.this.telnetClient.connect(hostname, port);
+                        ConnectionManager.this.canDoDisconnect = true;
 
-                                if (PlayerListDecoder.checkForPlayerListMessage(line, btc.getPlayerList()))
+                        btc.getBtnSend().setEnabled(true);
+                        btc.getTxtCommand().setEnabled(true);
+                        btc.getTxtCommand().requestFocusInWindow();
+
+                        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(telnetClient.getInputStream())))
+                        {
+                            String line;
+                            while ((line = reader.readLine()) != null)
+                            {
+                                String _loginName = null;
+                                if (ConnectionManager.this.loginName == null)
                                 {
-                                    btc.updatePlayerList(selectedPlayerName);
+                                    _loginName = checkForLoginMessage(line);
+                                }
+                                if (_loginName != null)
+                                {
+                                    ConnectionManager.this.loginName = _loginName;
+                                    updateTitle(true);
+                                    sendDelayedCommand("telnet.enhanced", false, 100);
                                 }
                                 else
                                 {
-                                    final TelnetMessage message = new TelnetMessage(line);
-                                    if (!message.skip())
+                                    final PlayerInfo selectedPlayer = btc.getSelectedPlayer();
+                                    String selectedPlayerName = null;
+                                    if (selectedPlayer != null)
                                     {
-                                        btc.writeToConsole(message);
+                                        selectedPlayerName = selectedPlayer.getName();
+                                    }
+
+                                    if (PlayerListDecoder.checkForPlayerListMessage(line, btc.getPlayerList()))
+                                    {
+                                        btc.updatePlayerList(selectedPlayerName);
+                                    }
+                                    else
+                                    {
+                                        final TelnetMessage message = new TelnetMessage(line);
+                                        if (!message.skip())
+                                        {
+                                            btc.writeToConsole(message);
+                                        }
                                     }
                                 }
                             }
                         }
+
+                        triggerDisconnect();
+                    }
+                    catch (IOException ex)
+                    {
+                        btc.writeToConsole(new ConsoleMessage(ex.getMessage() + SystemUtils.LINE_SEPARATOR + ExceptionUtils.getStackTrace(ex)));
                     }
 
-                    triggerDisconnect();
-                }
-                catch (IOException ex)
-                {
-                    btc.writeToConsole(new ConsoleMessage(ex.getMessage() + SystemUtils.LINE_SEPARATOR + ExceptionUtils.getStackTrace(ex)));
-                }
+                    finishDisconnect();
 
-                finishDisconnect();
-
-                ConnectionManager.this.connectThread = null;
-            }
+                    ConnectionManager.this.connectThread = null;
         });
         this.connectThread.start();
     }

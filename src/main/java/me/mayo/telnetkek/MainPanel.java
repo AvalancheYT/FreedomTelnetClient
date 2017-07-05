@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2012-2014 Steven Lawson
+ * Copyright (C) 2012-2017 Steven Lawson
  *
  * This file is part of FreedomTelnetClient.
  *
@@ -18,6 +18,9 @@
  */
 package me.mayo.telnetkek;
 
+import me.mayo.telnetkek.button.FavoriteButtonEntry;
+import me.mayo.telnetkek.player.PlayerCommandEntry;
+import me.mayo.telnetkek.player.PlayerInfo;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
@@ -30,7 +33,6 @@ import javax.swing.Timer;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.text.*;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
 
 public class MainPanel extends javax.swing.JFrame
 {
@@ -129,57 +131,51 @@ public class MainPanel extends javax.swing.JFrame
 
     private void writeToConsoleImmediately(final ConsoleMessage message, final boolean isTelnetError)
     {
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                if (isTelnetError && chkIgnoreErrors.isSelected())
+        SwingUtilities.invokeLater(()
+                -> 
                 {
-                    return;
-                }
-
-                final StyledDocument styledDocument = mainOutput.getStyledDocument();
-
-                int startLength = styledDocument.getLength();
-
-                try
-                {
-                    styledDocument.insertString(
-                            styledDocument.getLength(),
-                            message.getMessage() + SystemUtils.LINE_SEPARATOR,
-                            StyleContext.getDefaultStyleContext().addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, message.getColor())
-                    );
-                }
-                catch (BadLocationException ex)
-                {
-                    throw new RuntimeException(ex);
-                }
-
-                if (MainPanel.this.chkAutoScroll.isSelected() && MainPanel.this.mainOutput.getSelectedText() == null)
-                {
-                    final JScrollBar vScroll = mainOutputScoll.getVerticalScrollBar();
-
-                    if (!vScroll.getValueIsAdjusting())
+                    if (isTelnetError && chkIgnoreErrors.isSelected())
                     {
-                        if (vScroll.getValue() + vScroll.getModel().getExtent() >= (vScroll.getMaximum() - 50))
-                        {
-                            MainPanel.this.mainOutput.setCaretPosition(startLength);
+                        return;
+                    }
 
-                            final Timer timer = new Timer(10, new ActionListener()
+                    final StyledDocument styledDocument = mainOutput.getStyledDocument();
+
+                    int startLength = styledDocument.getLength();
+
+                    try
+                    {
+                        styledDocument.insertString(
+                                styledDocument.getLength(),
+                                message.getMessage() + System.lineSeparator(),
+                                StyleContext.getDefaultStyleContext().addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, message.getColor())
+                        );
+                    }
+                    catch (BadLocationException ex)
+                    {
+                        throw new RuntimeException(ex);
+                    }
+
+                    if (MainPanel.this.chkAutoScroll.isSelected() && MainPanel.this.mainOutput.getSelectedText() == null)
+                    {
+                        final JScrollBar vScroll = mainOutputScoll.getVerticalScrollBar();
+
+                        if (!vScroll.getValueIsAdjusting())
+                        {
+                            if (vScroll.getValue() + vScroll.getModel().getExtent() >= (vScroll.getMaximum() - 50))
                             {
-                                @Override
-                                public void actionPerformed(ActionEvent ae)
-                                {
-                                    vScroll.setValue(vScroll.getMaximum());
-                                }
-                            });
-                            timer.setRepeats(false);
-                            timer.start();
+                                MainPanel.this.mainOutput.setCaretPosition(startLength);
+
+                                final Timer timer = new Timer(10, (ActionEvent ae)
+                                        -> 
+                                        {
+                                            vScroll.setValue(vScroll.getMaximum());
+                                });
+                                timer.setRepeats(false);
+                                timer.start();
+                            }
                         }
                     }
-                }
-            }
         });
     }
 
@@ -243,29 +239,24 @@ public class MainPanel extends javax.swing.JFrame
 
     public final void updatePlayerList(final String selectedPlayerName)
     {
-        EventQueue.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                playerListTableModel.fireTableDataChanged();
-
-                MainPanel.this.txtNumPlayers.setText("" + playerList.size());
-
-                if (selectedPlayerName != null)
+        EventQueue.invokeLater(()
+                -> 
                 {
-                    final JTable table = MainPanel.this.tblPlayers;
-                    final ListSelectionModel selectionModel = table.getSelectionModel();
+                    playerListTableModel.fireTableDataChanged();
 
-                    for (PlayerInfo player : playerList)
+                    MainPanel.this.txtNumPlayers.setText("" + playerList.size());
+
+                    if (selectedPlayerName != null)
                     {
-                        if (player.getName().equals(selectedPlayerName))
-                        {
-                            selectionModel.setSelectionInterval(0, table.convertRowIndexToView(playerList.indexOf(player)));
-                        }
+                        final JTable table = MainPanel.this.tblPlayers;
+                        final ListSelectionModel selectionModel = table.getSelectionModel();
+
+                        playerList.stream().filter((player) -> (player.getName().equals(selectedPlayerName))).forEach((player)
+                                -> 
+                                {
+                                    selectionModel.setSelectionInterval(0, table.convertRowIndexToView(playerList.indexOf(player)));
+                        });
                     }
-                }
-            }
         });
     }
 
@@ -341,55 +332,56 @@ public class MainPanel extends javax.swing.JFrame
 
                         popup.addSeparator();
 
-                        final ActionListener popupAction = new ActionListener()
-                        {
-                            @Override
-                            public void actionPerformed(ActionEvent actionEvent)
-                            {
-                                Object _source = actionEvent.getSource();
-                                if (_source instanceof PlayerListPopupItem_Command)
+                        final ActionListener popupAction = (ActionEvent actionEvent)
+                                -> 
                                 {
-                                    final PlayerListPopupItem_Command source = (PlayerListPopupItem_Command) _source;
-                                    final String output = source.getCommand().buildOutput(source.getPlayer(), true);
-                                    MainPanel.this.getConnectionManager().sendDelayedCommand(output, true, 100);
-                                }
-                                else if (_source instanceof PlayerListPopupItem)
-                                {
-                                    final PlayerListPopupItem source = (PlayerListPopupItem) _source;
-
-                                    final PlayerInfo _player = source.getPlayer();
-
-                                    switch (actionEvent.getActionCommand())
+                                    Object _source = actionEvent.getSource();
+                                    if (_source instanceof PlayerListPopupItem_Command)
                                     {
-                                        case "Copy IP":
+                                        final PlayerListPopupItem_Command source = (PlayerListPopupItem_Command) _source;
+                                        final String output = source.getCommand().buildOutput(source.getPlayer(), true);
+                                        MainPanel.this.getConnectionManager().sendDelayedCommand(output, true, 100);
+                                    }
+                                    else if (_source instanceof PlayerListPopupItem)
+                                    {
+                                        final PlayerListPopupItem source = (PlayerListPopupItem) _source;
+
+                                        final PlayerInfo _player = source.getPlayer();
+
+                                        switch (actionEvent.getActionCommand())
                                         {
-                                            copyToClipboard(_player.getIp());
-                                            MainPanel.this.writeToConsole(new ConsoleMessage("Copied IP to clipboard: " + _player.getIp()));
-                                            break;
-                                        }
-                                        case "Copy Name":
-                                        {
-                                            copyToClipboard(_player.getName());
-                                            MainPanel.this.writeToConsole(new ConsoleMessage("Copied name to clipboard: " + _player.getName()));
-                                            break;
-                                        }
-                                        case "Copy UUID":
-                                        {
-                                            copyToClipboard(_player.getUuid());
-                                            MainPanel.this.writeToConsole(new ConsoleMessage("Copied UUID to clipboard: " + _player.getUuid()));
-                                            break;
+                                            case "Copy IP":
+                                            {
+                                                copyToClipboard(_player.getIp());
+                                                MainPanel.this.writeToConsole(new ConsoleMessage("Copied IP to clipboard: " + _player.getIp()));
+                                                break;
+                                            }
+                                            case "Copy Name":
+                                            {
+                                                copyToClipboard(_player.getName());
+                                                MainPanel.this.writeToConsole(new ConsoleMessage("Copied name to clipboard: " + _player.getName()));
+                                                break;
+                                            }
+                                            case "Copy UUID":
+                                            {
+                                                copyToClipboard(_player.getUuid());
+                                                MainPanel.this.writeToConsole(new ConsoleMessage("Copied UUID to clipboard: " + _player.getUuid()));
+                                                break;
+                                            }
                                         }
                                     }
-                                }
-                            }
                         };
 
-                        for (final PlayerCommandEntry command : TelnetKek.config.getCommands())
-                        {
-                            final PlayerListPopupItem_Command item = new PlayerListPopupItem_Command(command.getName(), player, command);
-                            item.addActionListener(popupAction);
-                            popup.add(item);
-                        }
+                        TelnetKek.config.getCommands().stream().map((command) -> new PlayerListPopupItem_Command(command.getName(), player, command)).map((item)
+                                -> 
+                                {
+                                    item.addActionListener(popupAction);
+                                    return item;
+                        }).forEach((item)
+                                -> 
+                                {
+                                    popup.add(item);
+                        });
 
                         popup.addSeparator();
 
@@ -422,14 +414,16 @@ public class MainPanel extends javax.swing.JFrame
     public final void loadServerList()
     {
         txtServer.removeAllItems();
-        for (final ServerEntry serverEntry : TelnetKek.config.getServers())
-        {
-            txtServer.addItem(serverEntry);
-            if (serverEntry.isLastUsed())
-            {
-                txtServer.setSelectedItem(serverEntry);
-            }
-        }
+        TelnetKek.config.getServers().stream().map((serverEntry)
+                -> 
+                {
+                    txtServer.addItem(serverEntry);
+                    return serverEntry;
+        }).filter((serverEntry) -> (serverEntry.isLastUsed())).forEach((serverEntry)
+                -> 
+                {
+                    txtServer.setSelectedItem(serverEntry);
+        });
     }
 
     public final void triggerConnect()
@@ -512,7 +506,7 @@ public class MainPanel extends javax.swing.JFrame
         jPanel4 = new javax.swing.JPanel();
         favoriteButtonsPanelHolder = new javax.swing.JPanel();
         favoriteButtonsPanelScroll = new javax.swing.JScrollPane();
-        favoriteButtonsPanel = new FavoriteButtonsPanel(favButtonList);
+        favoriteButtonsPanel = new me.mayo.telnetkek.button.FavoriteButtonsPanel(favButtonList);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("BukkitTelnetClient");
@@ -524,7 +518,6 @@ public class MainPanel extends javax.swing.JFrame
         jPanel3.setBackground(new java.awt.Color(68, 68, 68));
 
         mainOutput.setEditable(false);
-        mainOutput.setBackground(new java.awt.Color(0, 0, 0));
         mainOutput.setFont(new java.awt.Font("Lucida Sans Unicode", 0, 12)); // NOI18N
         mainOutput.setForeground(new java.awt.Color(255, 255, 255));
         mainOutputScoll.setViewportView(mainOutput);
@@ -666,7 +659,7 @@ public class MainPanel extends javax.swing.JFrame
         jLabel3.setBackground(new java.awt.Color(68, 68, 68));
         jLabel3.setFont(new java.awt.Font("Lucida Sans Unicode", 0, 12)); // NOI18N
         jLabel3.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel3.setText("# Players:");
+        jLabel3.setText("Number of Players:");
 
         txtNumPlayers.setEditable(false);
         txtNumPlayers.setBackground(new java.awt.Color(255, 255, 255));
@@ -679,12 +672,12 @@ public class MainPanel extends javax.swing.JFrame
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(tblPlayersScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 293, Short.MAX_VALUE)
+                    .addComponent(tblPlayersScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 329, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(txtNumPlayers, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 0, 0)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -715,6 +708,13 @@ public class MainPanel extends javax.swing.JFrame
         chkIgnoreServerCommands.setForeground(new java.awt.Color(255, 255, 255));
         chkIgnoreServerCommands.setSelected(true);
         chkIgnoreServerCommands.setText("Ignore \"issued server command\" messages");
+        chkIgnoreServerCommands.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                chkIgnoreServerCommandsActionPerformed(evt);
+            }
+        });
 
         chkShowChatOnly.setBackground(new java.awt.Color(68, 68, 68));
         chkShowChatOnly.setFont(new java.awt.Font("Lucida Sans Unicode", 0, 12)); // NOI18N
@@ -751,7 +751,7 @@ public class MainPanel extends javax.swing.JFrame
                     .addComponent(chkIgnoreServerCommands)
                     .addComponent(chkShowChatOnly)
                     .addComponent(chkIgnoreErrors))
-                .addContainerGap(32, Short.MAX_VALUE))
+                .addContainerGap(68, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -788,7 +788,7 @@ public class MainPanel extends javax.swing.JFrame
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(favoriteButtonsPanelHolder, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(favoriteButtonsPanelHolder, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         jPanel4Layout.setVerticalGroup(
@@ -877,6 +877,11 @@ public class MainPanel extends javax.swing.JFrame
     {//GEN-HEADEREND:event_txtServerActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtServerActionPerformed
+
+    private void chkIgnoreServerCommandsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_chkIgnoreServerCommandsActionPerformed
+    {//GEN-HEADEREND:event_chkIgnoreServerCommandsActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_chkIgnoreServerCommandsActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnConnect;

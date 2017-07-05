@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2012-2014 Steven Lawson
+ * Copyright (C) 2012-2017 Steven Lawson
  *
  * This file is part of FreedomTelnetClient.
  *
@@ -18,6 +18,10 @@
  */
 package me.mayo.telnetkek;
 
+import me.mayo.telnetkek.parameter.ParameterSetter;
+import me.mayo.telnetkek.parameter.ParameterGetter;
+import me.mayo.telnetkek.config.ConfigEntry;
+import me.mayo.telnetkek.config.ConfigEntryList;
 import java.util.HashSet;
 import java.util.Objects;
 
@@ -110,12 +114,7 @@ public class ServerEntry extends ConfigEntry
             return false;
         }
 
-        if (!Objects.equals(this.getAddress(), other.getAddress()))
-        {
-            return false;
-        }
-
-        return true;
+        return Objects.equals(this.getAddress(), other.getAddress());
     }
 
     public static class ServerEntryList extends ConfigEntryList<ServerEntry>
@@ -123,7 +122,7 @@ public class ServerEntry extends ConfigEntry
 
         public ServerEntryList()
         {
-            super(new HashSet<ServerEntry>(), ServerEntry.class);
+            super(new HashSet<>(), ServerEntry.class);
         }
 
         @Override

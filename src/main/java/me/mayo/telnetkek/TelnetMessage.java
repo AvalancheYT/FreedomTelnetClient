@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2012-2014 Steven Lawson
+ * Copyright (C) 2012-2017 Steven Lawson
  *
  * This file is part of FreedomTelnetClient.
  *
@@ -31,15 +31,15 @@ public class TelnetMessage extends ConsoleMessage
     private static final Pattern ERROR_MESSAGE = Pattern.compile("^:\\[.+? (?:(WARN)|(ERROR))\\]: ");
     private static final Pattern INFO_MESSAGE = Pattern.compile(PATTERN_PREFIX);
 
-    private final BTC_LogMessageType messageType;
+    private final LogMessageType messageType;
 
     public TelnetMessage(String message)
     {
         super(message);
-        this.messageType = BTC_LogMessageType.getMessageType(message);
+        this.messageType = LogMessageType.getMessageType(message);
     }
 
-    public BTC_LogMessageType getMessageType()
+    public LogMessageType getMessageType()
     {
         return this.messageType;
     }
@@ -54,7 +54,7 @@ public class TelnetMessage extends ConsoleMessage
         return INFO_MESSAGE.matcher(this.getMessage()).find();
     }
 
-    private boolean isType(final BTC_LogMessageType checkType)
+    private boolean isType(final LogMessageType checkType)
     {
         return this.messageType != null ? this.messageType == checkType : false;
     }
@@ -70,28 +70,40 @@ public class TelnetMessage extends ConsoleMessage
 
         if (mainPanel.getChkShowChatOnly().isSelected())
         {
-            return !isType(BTC_LogMessageType.CHAT_MESSAGE)
-                    && !isType(BTC_LogMessageType.CSAY_MESSAGE)
-                    && !isType(BTC_LogMessageType.SAY_MESSAGE)
-                    && !isType(BTC_LogMessageType.ADMINSAY_MESSAGE);
+            return !isType(LogMessageType.CHAT_MESSAGE)
+                    && !isType(LogMessageType.CSAY_MESSAGE)
+                    && !isType(LogMessageType.SAY_MESSAGE)
+                    && !isType(LogMessageType.SA_ADMIN)
+                    && !isType(LogMessageType.STA_ADMIN)
+                    && !isType(LogMessageType.SRA_ADMIN)
+                    && !isType(LogMessageType.DEV_ADMIN)
+                    && !isType(LogMessageType.OWNER_ADMIN)
+                    && !isType(LogMessageType.FOUNDER_ADMIN)
+                    && !isType(LogMessageType.CONSOLE_ADMIN);
         }
 
-        if (mainPanel.getChkIgnoreServerCommands().isSelected() && isType(BTC_LogMessageType.ISSUED_SERVER_COMMAND))
+        if (mainPanel.getChkIgnoreServerCommands().isSelected() && isType(LogMessageType.ISSUED_SERVER_COMMAND))
         {
             return true;
         }
 
-        if (mainPanel.getChkIgnorePlayerCommands().isSelected() && isType(BTC_LogMessageType.PLAYER_COMMAND))
+        if (mainPanel.getChkIgnorePlayerCommands().isSelected() && isType(LogMessageType.PLAYER_COMMAND))
         {
             return true;
         }
 
         if (mainPanel.getChkIgnoreErrors().isSelected())
         {
-            if (!isType(BTC_LogMessageType.CHAT_MESSAGE)
-                    && !isType(BTC_LogMessageType.CSAY_MESSAGE)
-                    && !isType(BTC_LogMessageType.SAY_MESSAGE)
-                    && !isType(BTC_LogMessageType.ADMINSAY_MESSAGE))
+            if (!isType(LogMessageType.CHAT_MESSAGE)
+                    && !isType(LogMessageType.CSAY_MESSAGE)
+                    && !isType(LogMessageType.SAY_MESSAGE)
+                    && !isType(LogMessageType.SA_ADMIN)
+                    && !isType(LogMessageType.STA_ADMIN)
+                    && !isType(LogMessageType.SRA_ADMIN)
+                    && !isType(LogMessageType.DEV_ADMIN)
+                    && !isType(LogMessageType.OWNER_ADMIN)
+                    && !isType(LogMessageType.FOUNDER_ADMIN)
+                    && !isType(LogMessageType.CONSOLE_ADMIN))
             {
                 return false;
             }
@@ -113,31 +125,50 @@ public class TelnetMessage extends ConsoleMessage
         }
     }
 
-    public static enum BTC_LogMessageType
+    public static enum LogMessageType
     {
         CHAT_MESSAGE(PATTERN_PREFIX + "\\<", Color.BLUE),
         SAY_MESSAGE(PATTERN_PREFIX + "\\[Server:", Color.BLUE),
         CSAY_MESSAGE(PATTERN_PREFIX + "\\[CONSOLE\\]<", Color.BLUE),
         //
-        ADMINSAY_MESSAGE(PATTERN_PREFIX + "\\[TotalFreedomMod\\] \\[ADMIN\\] ", PURPLE),
+        SA_ADMIN(PATTERN_PREFIX + "\\[TotalFreedomMod\\] \\[ADMIN\\] .+? \\[SA\\]: ", Color.CYAN),
+        STA_ADMIN(PATTERN_PREFIX + "\\[TotalFreedomMod\\] \\[ADMIN\\] .+? \\[STA\\]: ", DARK_GREEN),
+        SRA_ADMIN(PATTERN_PREFIX + "\\[TotalFreedomMod\\] \\[ADMIN\\] .+? \\[SrA\\]: ", Color.ORANGE),
+        DEV_ADMIN(PATTERN_PREFIX + "\\[TotalFreedomMod\\] \\[ADMIN\\] .+? \\[Dev\\]: ", PURPLE),
+        OWNER_ADMIN(PATTERN_PREFIX + "\\[TotalFreedomMod\\] \\[ADMIN\\] .+? \\[Owner\\]: ", Color.MAGENTA),
+        FOUNDER_ADMIN(PATTERN_PREFIX + "\\[TotalFreedomMod\\] \\[ADMIN\\] .+? \\[Founder\\]: ", Color.MAGENTA),
+        CONSOLE_ADMIN(PATTERN_PREFIX + "\\[TotalFreedomMod\\] \\[ADMIN\\] .+? \\[Console\\]: ", PURPLE),
         //
         WORLD_EDIT(PATTERN_PREFIX + "WorldEdit: ", Color.RED),
         //
         PREPROCESS_COMMAND(PATTERN_PREFIX + "\\[PREPROCESS_COMMAND\\] ", DARK_GREEN),
         //
         ISSUED_SERVER_COMMAND(PATTERN_PREFIX + ".+? issued server command: "),
-        PLAYER_COMMAND(PATTERN_PREFIX + "\\[PLAYER_COMMAND\\] ");
+        PLAYER_COMMAND(PATTERN_PREFIX + "\\[PLAYER_COMMAND\\] "),
+        //
+        SA_JOIN_MSG(PATTERN_PREFIX + ".+? is a Super Admin", Color.CYAN),
+        SA_JOIN_MSG2(PATTERN_PREFIX + ".+? is a Super Admin ", Color.CYAN),
+        STA_JOIN_MSG(PATTERN_PREFIX + ".+? is a Super Telnet Admin", DARK_GREEN),
+        STA_JOIN_MSG2(PATTERN_PREFIX + ".+? is a Super Telnet Admin ", DARK_GREEN),
+        STA_JOIN_MSG3(PATTERN_PREFIX + ".+? is a Telnet Admin", DARK_GREEN),
+        STA_JOIN_MSG4(PATTERN_PREFIX + ".+? is a Telnet Admin ", DARK_GREEN),
+        TCA_JOIN_MSG(PATTERN_PREFIX + ".+? is a Telnet Clan Admin", Color.GREEN),
+        TCA_JOIN_MSG2(PATTERN_PREFIX + ".+? is a Telnet Clan Admin ", Color.GREEN),
+        TCA_JOIN_MSG3(PATTERN_PREFIX + ".+? is a Telnet Clan. Admin", Color.GREEN),
+        TCA_JOIN_MSG4(PATTERN_PREFIX + ".+? is a Telnet Clan. Admin ", Color.GREEN),
+        SRA_JOIN_MSG(PATTERN_PREFIX + ".+? is a Senior Admin", Color.ORANGE),
+        SRA_JOIN_MSG2(PATTERN_PREFIX + ".+? is a Senior Admin ", Color.ORANGE);
 
         private final Pattern messagePattern;
         private final Color color;
 
-        private BTC_LogMessageType(final String messagePatternStr)
+        private LogMessageType(final String messagePatternStr)
         {
             this.messagePattern = Pattern.compile(messagePatternStr);
             this.color = Color.BLACK;
         }
 
-        private BTC_LogMessageType(final String messagePatternStr, final Color color)
+        private LogMessageType(final String messagePatternStr, final Color color)
         {
             this.messagePattern = Pattern.compile(messagePatternStr);
             this.color = color;
@@ -153,9 +184,9 @@ public class TelnetMessage extends ConsoleMessage
             return this.color;
         }
 
-        public static BTC_LogMessageType getMessageType(final String message)
+        public static LogMessageType getMessageType(final String message)
         {
-            for (final BTC_LogMessageType type : values())
+            for (final LogMessageType type : values())
             {
                 if (type.getMessagePattern().matcher(message).find())
                 {

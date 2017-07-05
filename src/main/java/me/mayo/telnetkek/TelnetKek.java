@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2012-2014 Steven Lawson
+ * Copyright (C) 2012-2017 Steven Lawson
  *
  * This file is part of FreedomTelnetClient.
  *
@@ -18,6 +18,7 @@
  */
 package me.mayo.telnetkek;
 
+import me.mayo.telnetkek.config.ConfigLoader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
@@ -26,7 +27,7 @@ import java.util.logging.Logger;
 public class TelnetKek
 {
 
-    public static final String VERSION_STRING = "v1.0";
+    public static final String VERSION_STRING = "v1.1";
     public static final Logger LOGGER = Logger.getLogger(TelnetKek.class.getName());
     public static MainPanel mainPanel = null;
     public static ConfigLoader config = new ConfigLoader();
@@ -37,14 +38,11 @@ public class TelnetKek
 
         findAndSetLookAndFeel("CDE");
 
-        java.awt.EventQueue.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                mainPanel = new MainPanel();
-                mainPanel.setup();
-            }
+        java.awt.EventQueue.invokeLater(()
+                -> 
+                {
+                    mainPanel = new MainPanel();
+                    mainPanel.setup();
         });
     }
 
